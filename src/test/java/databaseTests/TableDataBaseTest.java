@@ -11,6 +11,9 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvFileSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.*;
 import java.util.stream.Stream;
 
@@ -32,7 +35,7 @@ public class TableDataBaseTest {
     private static final String DELETE_PRODUCT_BY_NAME = "DELETE FROM Product WHERE product_name = ?";
 
     @BeforeAll
-    static void setup() throws SQLException {
+    static void setup() throws SQLException, IOException {
         String dbName = DatabaseUtil.getDatabaseName();
 
         // Create the database
@@ -42,44 +45,53 @@ public class TableDataBaseTest {
         conn = DatabaseUtil.getConnection(dbName);
         stmt = conn.createStatement();
 
-        // Drop and recreate tables for testing
-        stmt.executeUpdate("DROP TABLE IF EXISTS Order_Product");
-        stmt.executeUpdate("DROP TABLE IF EXISTS `Order`");
-        stmt.executeUpdate("DROP TABLE IF EXISTS Product");
-        stmt.executeUpdate("DROP TABLE IF EXISTS Customer");
+//        // Drop and recreate tables for testing
+//        stmt.executeUpdate("DROP TABLE IF EXISTS Order_Product");
+//        stmt.executeUpdate("DROP TABLE IF EXISTS `Order`");
+//        stmt.executeUpdate("DROP TABLE IF EXISTS Product");
+//        stmt.executeUpdate("DROP TABLE IF EXISTS Customer");
+//
+//        // Create Customer Table
+//        stmt.executeUpdate("CREATE TABLE Customer (" +
+//                "customer_id INT AUTO_INCREMENT PRIMARY KEY, " +
+//                "name VARCHAR(100) NOT NULL, " +
+//                "email VARCHAR(100) NOT NULL UNIQUE, " +
+//                "phone_number VARCHAR(15) NOT NULL" +
+//                ")");
+//
+//        // Create Product Table
+//        stmt.executeUpdate("CREATE TABLE Product (" +
+//                "product_id INT AUTO_INCREMENT PRIMARY KEY, " +
+//                "product_name VARCHAR(100) NOT NULL, " +
+//                "price DECIMAL(10, 2) NOT NULL CHECK (price >= 0)" +
+//                ")");
+//
+//        // Create Order Table
+//        stmt.executeUpdate("CREATE TABLE `Order` (" +
+//                "order_id INT AUTO_INCREMENT PRIMARY KEY, " +
+//                "order_date DATE NOT NULL, " +
+//                "customer_id INT NOT NULL, " +
+//                "FOREIGN KEY (customer_id) REFERENCES Customer(customer_id) ON DELETE CASCADE" +
+//                ")");
+//
+//        // Create Order_Product Junction Table
+//        stmt.executeUpdate("CREATE TABLE Order_Product (" +
+//                "order_id INT NOT NULL, " +
+//                "product_id INT NOT NULL, " +
+//                "quantity INT NOT NULL, " +
+//                "PRIMARY KEY (order_id, product_id), " +
+//                "FOREIGN KEY (order_id) REFERENCES `Order`(order_id) ON DELETE CASCADE, " +
+//                "FOREIGN KEY (product_id) REFERENCES Product(product_id) ON DELETE CASCADE" +
+//                ")");
 
-        // Create Customer Table
-        stmt.executeUpdate("CREATE TABLE Customer (" +
-                "customer_id INT AUTO_INCREMENT PRIMARY KEY, " +
-                "name VARCHAR(100) NOT NULL, " +
-                "email VARCHAR(100) NOT NULL UNIQUE, " +
-                "phone_number VARCHAR(15) NOT NULL" +
-                ")");
 
-        // Create Product Table
-        stmt.executeUpdate("CREATE TABLE Product (" +
-                "product_id INT AUTO_INCREMENT PRIMARY KEY, " +
-                "product_name VARCHAR(100) NOT NULL, " +
-                "price DECIMAL(10, 2) NOT NULL CHECK (price >= 0)" +
-                ")");
-
-        // Create Order Table
-        stmt.executeUpdate("CREATE TABLE `Order` (" +
-                "order_id INT AUTO_INCREMENT PRIMARY KEY, " +
-                "order_date DATE NOT NULL, " +
-                "customer_id INT NOT NULL, " +
-                "FOREIGN KEY (customer_id) REFERENCES Customer(customer_id) ON DELETE CASCADE" +
-                ")");
-
-        // Create Order_Product Junction Table
-        stmt.executeUpdate("CREATE TABLE Order_Product (" +
-                "order_id INT NOT NULL, " +
-                "product_id INT NOT NULL, " +
-                "quantity INT NOT NULL, " +
-                "PRIMARY KEY (order_id, product_id), " +
-                "FOREIGN KEY (order_id) REFERENCES `Order`(order_id) ON DELETE CASCADE, " +
-                "FOREIGN KEY (product_id) REFERENCES Product(product_id) ON DELETE CASCADE" +
-                ")");
+        // Read and execute the schema SQL file
+        String schemaSql = new String(Files.readAllBytes(Paths.get("src/test/resources/schema.sql")));
+        for (String sql : schemaSql.split(";")) {
+            if (!sql.trim().isEmpty()) {
+                stmt.execute(sql);
+            }
+        }
     }
 
     @AfterAll
