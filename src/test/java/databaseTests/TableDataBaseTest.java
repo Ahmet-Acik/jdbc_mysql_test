@@ -18,7 +18,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class TableDataBaseTest {
 
-
     private static Connection conn;
     private static Statement stmt;
 
@@ -61,7 +60,7 @@ public class TableDataBaseTest {
         stmt.executeUpdate("CREATE TABLE Product (" +
                 "product_id INT AUTO_INCREMENT PRIMARY KEY, " +
                 "product_name VARCHAR(100) NOT NULL, " +
-                "price DECIMAL(10, 2) NOT NULL" +
+                "price DECIMAL(10, 2) NOT NULL CHECK (price >= 0)" +
                 ")");
 
         // Create Order Table
@@ -96,6 +95,54 @@ public class TableDataBaseTest {
         stmt.executeUpdate("DELETE FROM Customer");
     }
 
+    static Stream<Arguments> provideCustomerData() {
+        return Stream.of(
+                Arguments.of("John Doe", "john.doe@example.com", "555-1234"),
+                Arguments.of("Jane Doe", "jane.doe@example.com", "555-5678")
+        );
+    }
+
+    static Stream<Arguments> provideInvalidOrderData() {
+        return Stream.of(
+                Arguments.of(Date.valueOf("2023-08-22"), 999)  // Non-existent customer_id
+        );
+    }
+
+    static Stream<Arguments> provideInvalidOrderProductData() {
+        return Stream.of(
+                Arguments.of(999, 1, 1),  // Non-existent order_id, assuming product_id = 1 exists
+                Arguments.of(1, 999, 1)   // Assuming order_id = 1 exists, non-existent product_id
+        );
+    }
+
+    static Stream<Arguments> provideInvalidCustomerData() {
+        return Stream.of(
+                Arguments.of(null, "invalid@example.com", "555-0000"),  // Null name
+                Arguments.of("Invalid User", null, "555-0000"),         // Null email
+                Arguments.of("Invalid User", "invalid@example.com", null), // Null phone number
+                Arguments.of("Duplicate User", "duplicate@example.com", "555-0000") // Duplicate email
+        );
+    }
+
+    static Stream<Arguments> provideInvalidProductData() {
+        return Stream.of(
+                Arguments.of(null, 100.00),  // Null product name
+                Arguments.of("Invalid Product", -10.00)  // Negative price
+        );
+    }
+
+    static Stream<Arguments> provideInvalidUpdateCustomerData() {
+        return Stream.of(
+                Arguments.of("nonexistent@example.com", "555-0000")  // Non-existent email
+        );
+    }
+
+    static Stream<Arguments> provideInvalidDeleteProductData() {
+        return Stream.of(
+                Arguments.of("NonExistentProduct")  // Non-existent product name
+        );
+    }
+
     @ParameterizedTest
     @CsvFileSource(resources = "/customer_data.csv", numLinesToSkip = 1)
     @DisplayName("Test for Creating and Reading a Customer")
@@ -125,7 +172,7 @@ public class TableDataBaseTest {
     void testCreateAndReadProduct(String productName, double price) throws SQLException {
         try (PreparedStatement ps = conn.prepareStatement(INSERT_PRODUCT)) {
             ps.setString(1, productName);
-            ps.setBigDecimal(2, new java.math.BigDecimal(price));
+            ps.setDouble(2, price);
             int rowsAffected = ps.executeUpdate();
             assertEquals(1, rowsAffected, "1 row should be inserted");
         }
@@ -310,23 +357,70 @@ public class TableDataBaseTest {
         assertNotNull(exception2, "SQLException should be thrown for non-existent product_id");
     }
 
-    static Stream<Arguments> provideCustomerData() {
-        return Stream.of(
-                Arguments.of("John Doe", "john.doe@example.com", "555-1234"),
-                Arguments.of("Jane Doe", "jane.doe@example.com", "555-5678")
-        );
+    @ParameterizedTest
+    @MethodSource("provideInvalidProductData")
+    @DisplayName("Test for Inserting a Product with Invalid Data (should fail)")
+    void testInsertProductWithInvalidData(String productName, double price) {
+        SQLException exception = assertThrows(SQLException.class, () -> {
+            try (PreparedStatement ps = conn.prepareStatement(INSERT_PRODUCT)) {
+                ps.setString(1, productName);
+                ps.setDouble(2, price);
+                ps.executeUpdate();
+            }
+        });
+        assertNotNull(exception, "SQLException should be thrown for invalid product data");
     }
 
-    static Stream<Arguments> provideInvalidOrderData() {
-        return Stream.of(
-                Arguments.of(Date.valueOf("2023-08-22"), 999)  // Non-existent customer_id
-        );
+    @ParameterizedTest
+    @MethodSource("provideInvalidUpdateCustomerData")
+    @DisplayName("Test for Updating a Customer with Invalid Data (should fail)")
+    void testUpdateCustomerWithInvalidData(String email, String newPhone) {
+        try (PreparedStatement ps = conn.prepareStatement(UPDATE_CUSTOMER_PHONE)) {
+            ps.setString(1, newPhone);
+            ps.setString(2, email);
+            int rowsAffected = ps.executeUpdate();
+            assertEquals(0, rowsAffected, "No rows should be updated for non-existent email");
+        } catch (SQLException e) {
+            assertNotNull(e, "SQLException should be thrown for invalid update data");
+        }
     }
 
-    static Stream<Arguments> provideInvalidOrderProductData() {
-        return Stream.of(
-                Arguments.of(999, 1, 1),  // Non-existent order_id, assuming product_id = 1 exists
-                Arguments.of(1, 999, 1)   // Assuming order_id = 1 exists, non-existent product_id
-        );
+    @ParameterizedTest
+    @MethodSource("provideInvalidDeleteProductData")
+    @DisplayName("Test for Deleting a Product with Invalid Data (should fail)")
+    void testDeleteProductWithInvalidData(String productName) {
+        try (PreparedStatement ps = conn.prepareStatement(DELETE_PRODUCT_BY_NAME)) {
+            ps.setString(1, productName);
+            int rowsAffected = ps.executeUpdate();
+            assertEquals(0, rowsAffected, "No rows should be deleted for non-existent product");
+        } catch (SQLException e) {
+            assertNotNull(e, "SQLException should be thrown for invalid delete data");
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideInvalidCustomerData")
+    @DisplayName("Test for Inserting a Customer with Invalid Data (should fail)")
+    void testInsertCustomerWithInvalidData(String name, String email, String phoneNumber) {
+        // Setup duplicate email
+        try (PreparedStatement ps = conn.prepareStatement(INSERT_CUSTOMER)) {
+            ps.setString(1, "Existing User");
+            ps.setString(2, "duplicate@example.com");
+            ps.setString(3, "555-0000");
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            // Ignore if the setup fails, as it might already exist
+        }
+
+        // Test for invalid customer data
+        try (PreparedStatement ps = conn.prepareStatement(INSERT_CUSTOMER)) {
+            ps.setString(1, name);
+            ps.setString(2, email);
+            ps.setString(3, phoneNumber);
+            ps.executeUpdate();
+            fail("SQLException should be thrown for invalid customer data");
+        } catch (SQLException e) {
+            assertNotNull(e, "SQLException should be thrown for invalid customer data");
+        }
     }
 }
