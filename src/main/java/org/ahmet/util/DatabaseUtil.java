@@ -37,9 +37,13 @@ public class DatabaseUtil {
 
     public static DataSource getDataSource(String dbName) {
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl("jdbc:mysql://localhost:3306/" + dbName);
+        config.setJdbcUrl("jdbc:mysql://localhost:3306/" + properties.getProperty("database.name"));
         config.setUsername(properties.getProperty("database.user"));
         config.setPassword(properties.getProperty("database.password"));
+        config.setMaximumPoolSize(5); // Reduce the maximum pool size
+        config.setConnectionTimeout(30000); // 30 seconds
+        config.setIdleTimeout(60000); // 60 seconds
+        config.setMaxLifetime(1800000); // 30 minutes
         return new HikariDataSource(config);
     }
 
