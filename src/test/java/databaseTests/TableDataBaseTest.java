@@ -36,6 +36,8 @@ public class TableDataBaseTest {
 
     @BeforeAll
     static void setup() throws SQLException, IOException {
+
+        // Get the database name from the properties file
         String dbName = DatabaseUtil.getDatabaseName();
 
         // Create the database

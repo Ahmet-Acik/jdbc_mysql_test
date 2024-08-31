@@ -43,6 +43,21 @@
             <version>5.10.3</version>
             <scope>compile</scope>
         </dependency>
+
+        <!-- File: pom.xml -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <version>8.0.0</version>
+        </dependency>
+
+            <!-- Other dependencies -->
+            <dependency>
+                <groupId>com.zaxxer</groupId>
+                <artifactId>HikariCP</artifactId>
+                <version>5.0.1</version>
+            </dependency>
+
     </dependencies>
 
 </project>

@@ -1,13 +1,13 @@
 // src/main/java/org/ahmet/util/DatabaseUtil.java
 package org.ahmet.util;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.ResultSet;
+import java.sql.*;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,6 +33,14 @@ public class DatabaseUtil {
         String user = properties.getProperty("database.user");
         String password = properties.getProperty("database.password");
         return DriverManager.getConnection(url, user, password);
+    }
+
+    public static DataSource getDataSource(String dbName) {
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl("jdbc:mysql://localhost:3306/" + dbName);
+        config.setUsername(properties.getProperty("database.user"));
+        config.setPassword(properties.getProperty("database.password"));
+        return new HikariDataSource(config);
     }
 
     public static String getDatabaseName() {

@@ -13,6 +13,13 @@ import java.util.logging.Logger;
 public class DatabaseSetup {
     private static final Logger LOGGER = Logger.getLogger(DatabaseSetup.class.getName());
 
+    public static void dropDatabase(String dbName) throws SQLException {
+        try (Connection conn = DatabaseUtil.getConnection("");
+             Statement stmt = conn.createStatement()) {
+            stmt.executeUpdate("DROP DATABASE IF EXISTS " + dbName);
+        }
+    }
+
     public static void createDatabase(String dbName) {
         String createDatabaseQuery = "CREATE DATABASE IF NOT EXISTS " + dbName;
         try {
