@@ -2,11 +2,12 @@
 
 A comprehensive Java application demonstrating JDBC best practices, DRY principles, and enterprise-grade database integration with MySQL.
 
-## 🏗️ Architecture
+## Architecture
 
 This project follows enterprise Java best practices with a layered architecture and DRY (Don't Repeat Yourself) principles:
 
 ### Production Code Structure
+
 ```
 src/main/java/org/ahmet/
 ├── Main.java                    # Application entry point
@@ -30,10 +31,11 @@ src/main/java/org/ahmet/
 ```
 
 ### Test Architecture (DRY Implementation)
+
 ```
 src/test/java/
 ├── databaseTests/
-│   ├── BaseIntegrationTest.java     # 🏗️ DRY Base class for all DB tests
+│   ├── BaseIntegrationTest.java     # DRY Base class for all DB tests
 │   ├── DataTest.java               # Basic CRUD operations (17 tests)
 │   ├── TableDataBaseTest.java      # Advanced table operations (23 tests)
 │   ├── ThreeTableDatabaseTest.java # Multi-table relationships (27 tests)
@@ -45,15 +47,17 @@ src/test/java/
     └── CustomerServiceAdvancedTest.java # Advanced service tests (16 tests)
 ```
 
-**🚀 DRY Architecture Benefits:**
+**DRY Architecture Benefits:**
+
 - **Single Source of Truth**: `BaseIntegrationTest` eliminates code duplication
 - **Shared Connection Pool**: Singleton pattern prevents connection exhaustion
 - **Automatic Database Reset**: Ensures test isolation without manual setup
 - **Consistent Test Infrastructure**: 91 tests use unified testing framework
 
-## ✨ Features
+## Features
 
 ### Core JDBC Capabilities
+
 - **Security First**: Prepared statements prevent SQL injection
 - **Connection Pooling**: HikariCP with singleton pattern for optimal resource management
 - **Database Migrations**: Flyway for version-controlled schema changes
@@ -61,6 +65,7 @@ src/test/java/
 - **Exception Handling**: Custom exceptions with proper error propagation
 
 ### Advanced JDBC Demonstrations (91 Tests)
+
 - **CRUD Operations**: Complete Create, Read, Update, Delete examples
 - **Transaction Management**: Proper transaction boundaries and rollback scenarios
 - **Batch Processing**: Efficient batch operations for bulk data handling
@@ -71,13 +76,14 @@ src/test/java/
 - **Performance Optimization**: Connection reuse and resource cleanup
 
 ### Development & Testing Excellence
+
 - **DRY Test Architecture**: `BaseIntegrationTest` eliminates code duplication
 - **Comprehensive Testing**: 91 tests across 9 test classes with 0 failures
 - **Environment Configuration**: Externalized configuration with environment variables
 - **Docker Support**: Containerized MySQL for development
 - **Automated Setup**: Scripts for quick development environment initialization
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -88,23 +94,27 @@ src/test/java/
 ### Development Setup
 
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd JdbcMysqlTest
    ```
 
 2. **Set up development environment**
+
    ```bash
    ./setup-dev-env.sh
    ```
 
 3. **Configure environment variables** (optional)
+
    ```bash
    cp .env.template .env
    # Edit .env with preferred settings
    ```
 
 4. **Run the application**
+
    ```bash
    mvn clean compile exec:java -Dexec.mainClass=org.ahmet.Main
    ```
@@ -118,13 +128,14 @@ If you prefer not to use Docker:
 3. Update `src/main/resources/database.properties` with credentials
 4. Run migrations: `mvn flyway:migrate`
 
-## 🧪 Testing Architecture (DRY Implementation)
+## Testing Architecture (DRY Implementation)
 
 Our comprehensive test suite demonstrates advanced JDBC features while following DRY principles:
 
 ### Test Suite Overview (91 Tests)
 
 **Database Integration Tests (8 classes, 70 tests):**
+
 - `BaseIntegrationTest` - Shared infrastructure for all database tests
 - `DataTest` - Basic CRUD operations (17 tests)
 - `TableDataBaseTest` - Advanced table operations (23 tests)  
@@ -134,12 +145,14 @@ Our comprehensive test suite demonstrates advanced JDBC features while following
 - `JdbcStoredProcedureTest` - Stored procedure demonstrations
 
 **Service Layer Tests (2 classes, 37 tests):**
+
 - `CustomerServiceTest` - Core business logic (21 tests)
 - `CustomerServiceAdvancedTest` - Advanced service features (16 tests)
 
 ### DRY Test Infrastructure
 
 **BaseIntegrationTest Benefits:**
+
 - **Singleton DataSource Management**: Prevents connection pool exhaustion
 - **Automatic Database Reset**: Clean state for each test method
 - **Shared Connection Pool**: HikariCP optimization with 3 max connections
@@ -169,7 +182,7 @@ mvn clean verify jacoco:report
 [INFO] BUILD SUCCESS
 ```
 
-## 🔧 Configuration
+## Configuration
 
 ### Database Properties
 
@@ -193,11 +206,12 @@ DB_MAX_LIFETIME=1800000
 ### Logging Configuration
 
 Logging is configured in `src/main/resources/logback.xml`:
+
 - Console output for development
 - File rotation for production
 - Configurable log levels per package
 
-## 📊 Database Schema
+## Database Schema
 
 The application manages these entities:
 
@@ -208,21 +222,21 @@ The application manages these entities:
 
 Schema changes are managed through Flyway migrations in `src/main/resources/db/migration/`.
 
-## 🛡️ Security Best Practices
+## Security Best Practices
 
 - **SQL Injection Prevention**: All queries use prepared statements
 - **Connection Security**: SSL-enabled database connections
 - **Credential Management**: Environment-based configuration
 - **Resource Management**: Automatic connection cleanup with try-with-resources
 
-## 📈 Performance Optimizations
+## Performance Optimizations
 
 - **Connection Pooling**: HikariCP with optimized settings
 - **Database Indexing**: Strategic indexes for common queries
 - **Prepared Statement Caching**: Reduced SQL parsing overhead
 - **Resource Lifecycle**: Proper cleanup to prevent memory leaks
 
-## 🏗️ Best Practices Implemented
+## Best Practices Implemented
 
 ### DRY (Don't Repeat Yourself) Architecture
 
@@ -235,6 +249,7 @@ Schema changes are managed through Flyway migrations in `src/main/resources/db/m
 - **Template Method Pattern**: Extensible hooks for test-specific setup/teardown
 
 **Benefits Achieved:**
+
 - **60% Code Reduction**: Eliminated duplicate setup/teardown methods
 - **100% Test Reliability**: 91 tests pass consistently without connection issues  
 - **Improved Maintainability**: Single location for database test infrastructure changes
@@ -270,9 +285,10 @@ Schema changes are managed through Flyway migrations in `src/main/resources/db/m
 - **Configuration Management**: Environment-specific settings with .env support
 - **Logging Strategy**: Structured logging with configurable levels per package
 
-## 🔍 Common Operations
+## Common Operations
 
 ### Customer Management
+
 ```java
 // Create customer
 CustomerService customerService = new CustomerService();
@@ -288,6 +304,7 @@ customerService.updateCustomer(customer);
 ```
 
 ### Database Operations
+
 ```java
 // Using DAO directly
 CustomerDao customerDao = new CustomerDao();
@@ -295,19 +312,22 @@ List<Customer> allCustomers = customerDao.findAll();
 Optional<Customer> customer = customerDao.findByEmail("john@example.com");
 ```
 
-## 🚀 Building and Deployment
+## Building and Deployment
 
 ### Build
+
 ```bash
 mvn clean package
 ```
 
 ### Run Tests
+
 ```bash
 mvn verify
 ```
 
 ### Database Migrations
+
 ```bash
 # Run migrations
 mvn flyway:migrate
@@ -319,7 +339,7 @@ mvn flyway:info
 mvn flyway:clean
 ```
 
-## 📝 Contributing
+## Contributing
 
 1. Follow the established code style and patterns
 2. Add unit tests for new features
@@ -327,7 +347,7 @@ mvn flyway:clean
 4. Use meaningful commit messages
 5. Ensure all tests pass before submitting
 
-## 🧬 DRY Architecture Deep Dive
+## DRY Architecture Deep Dive
 
 ### BaseIntegrationTest Implementation
 
@@ -392,30 +412,35 @@ All database tests extend `BaseIntegrationTest`:
 
 **Result**: 60% reduction in test code, 0% functionality loss, 100% test reliability.
 
-## 🔗 Dependencies
+## Dependencies
 
 ### Core Database
+
 - **MySQL Connector/J 8.0.33**: MySQL JDBC driver with latest security patches
 - **HikariCP 5.1.0**: High-performance connection pooling with leak detection
 - **Flyway 10.17.0**: Database migration tool for schema versioning
 
-### Testing Framework  
+### Testing Framework
+
 - **JUnit 5.10.3**: Modern testing framework with parameterized tests
 - **Mockito 5.12.0**: Mocking framework for isolated unit testing
 - **AssertJ**: Fluent assertion library for readable test code
 
 ### Logging & Configuration
+
 - **SLF4J 2.0.16 + Logback 1.4.14**: Structured logging framework
 - **Jackson**: JSON processing for configuration management
 
 ### Build & Analysis
+
 - **Maven Surefire 3.5.2**: Unit test execution
 - **Maven Failsafe 3.5.2**: Integration test execution  
 - **JaCoCo 0.8.12**: Code coverage analysis and reporting
 
-## � Project Metrics
+## Project Metrics
 
 ### Code Quality
+
 - **91 Tests**: Comprehensive JDBC feature coverage
 - **0 Failures**: 100% test success rate after DRY refactoring
 - **60% Code Reduction**: Eliminated duplicate setup/teardown methods
@@ -423,23 +448,25 @@ All database tests extend `BaseIntegrationTest`:
 - **Zero SQL Injection Vulnerabilities**: 100% prepared statement usage
 
 ### Performance Optimizations
+
 - **Singleton DataSource Pattern**: Prevents connection pool exhaustion
 - **HikariCP Configuration**: Optimized for development (3 max connections) and production
 - **Automatic Resource Cleanup**: Prevents memory leaks and connection issues
 - **Test Execution Time**: ~27 seconds for complete test suite (91 tests)
 
 ### Architecture Benefits
+
 - **DRY Compliance**: BaseIntegrationTest eliminates code duplication
 - **Enterprise Patterns**: DAO, Service Layer, and proper separation of concerns
 - **Production Ready**: Connection pooling, logging, and error handling
 - **Maintainable**: Single source of truth for database test infrastructure
 
-## �📄 License
+## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 ---
 
-**🎯 Ready for Production**: This JDBC implementation demonstrates enterprise-grade database access patterns with comprehensive testing, DRY architecture, and zero technical debt.
+**Ready for Production**: This JDBC implementation demonstrates enterprise-grade database access patterns with comprehensive testing, DRY architecture, and zero technical debt.
 
 For questions or support, please open an issue in the project repository.
