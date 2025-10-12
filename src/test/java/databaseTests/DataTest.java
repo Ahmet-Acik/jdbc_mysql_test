@@ -2,8 +2,6 @@ package databaseTests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.io.IOException;
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -11,87 +9,23 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.logging.Logger;
 
-import org.ahmet.database.DatabaseSetup;
 import org.ahmet.util.DatabaseUtil;
-import org.flywaydb.core.Flyway;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.zaxxer.hikari.HikariDataSource;
+/**
+ * Comprehensive data validation tests using JDBC.
+ * Extends BaseIntegrationTest for DRY principles - eliminates duplicate setup/teardown code.
+ * 
+ * Tests validate:
+ * - Table row counts match expected migration data
+ * - Data integrity across all tables
+ * - Complex queries and aggregations
+ */
+public class DataTest extends BaseIntegrationTest {
 
-public class DataTest {
-
-    private static Connection conn;
-    private static HikariDataSource dataSource;
     private static final Logger LOGGER = Logger.getLogger(DatabaseUtil.class.getName());
-    private static final String dbName = "testdb_integration"; // Use separate test database
-    private static final Properties properties = new Properties();
-
-    @BeforeAll
-    static void setUp() throws SQLException, IOException {
-
-        // Drop the existing database
-        DatabaseSetup.dropDatabase(dbName);
-
-        // Create the database
-        DatabaseSetup.createDatabase(dbName);
-
-        // Establish the JDBC connection
-        conn = DatabaseUtil.getConnection(dbName);
-
-//        // Read and execute the schema SQL file
-//        stmt = conn.createStatement();
-//        String schemaSql = new String(Files.readAllBytes(Paths.get("src/test/resources/schema.sql")));
-//        for (String sql : schemaSql.split(";")) {
-//            if (!sql.trim().isEmpty()) {
-//                stmt.execute(sql);
-//            }
-//        }
-//
-//        // Read and execute the data SQL file
-//        String dataSql = new String(Files.readAllBytes(Paths.get("src/test/resources/data.sql")));
-//        for (String sql : dataSql.split(";")) {
-//            if (!sql.trim().isEmpty()) {
-//                stmt.execute(sql);
-//            }
-//        }
-
-        // Configure and run Flyway migrations
-        Flyway flyway = Flyway.configure()
-                .dataSource(DatabaseUtil.getDataSource(dbName))
-                .baselineOnMigrate(true)  // Set baselineOnMigrate to true
-                .load();
-        flyway.migrate();
-    }
-
-    @BeforeEach
-    void resetDatabase() throws SQLException {
-        // Clean and re-apply Flyway migrations before each test
-        Flyway flyway = Flyway.configure()
-                .dataSource(DatabaseUtil.getDataSource(dbName))
-                .cleanDisabled(false)  // Enable clean for tests
-                .load();
-        flyway.clean();
-        flyway.migrate();
-    }
-
-    @AfterEach
-    void tearDown() {
-        if (dataSource != null) {
-            dataSource.close();
-        }
-        // Introduce a delay to avoid exceeding the connection limit
-        try {
-            Thread.sleep(1000); // 1 second delay
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-    }
 
     /*Display all customers:
     SELECT * FROM Customer;
