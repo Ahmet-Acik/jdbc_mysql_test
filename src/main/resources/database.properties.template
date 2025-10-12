@@ -1,0 +1,13 @@
+# MySQL Database configuration
+# Default values - can be overridden by environment variables or system properties
+database.name=testdb
+database.user=
+database.password=
+database.host=localhost
+database.port=3306
+
+# Connection pool settings
+database.pool.maximum-size=10
+database.pool.connection-timeout=30000
+database.pool.idle-timeout=600000
+database.pool.max-lifetime=1800000
