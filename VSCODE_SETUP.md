@@ -1,8 +1,7 @@
 # VS Code Java 21 Setup Guide
 
 ## Running the Application from VS Code
-
-Your project is now configured to run with Java 21 directly from VS Code. Here are the available options:
+Pproject is now configured to run with Java 21 directly from VS Code. Here are the available options:
 
 ### 1. 🚀 Quick Run (Recommended)
 1. Open `src/main/java/org/ahmet/Main.java` in VS Code
@@ -70,4 +69,4 @@ If you see "No Java runtime found" or similar errors:
 ✅ Debug support enabled  
 ✅ Environment variables set up  
 
-Your Java 21 project is ready to run from VS Code! 🎉
+Java 21 project is ready to run from VS Code! 🎉

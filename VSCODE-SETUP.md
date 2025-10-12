@@ -1,6 +1,6 @@
 # VS Code Java 21 Setup Complete! 🎉
 
-## How to Run Your Application in VS Code
+## How to Run Application in VS Code
 
 ### 🚀 **Method 1: Using the Run Button (Recommended)**
 
@@ -17,7 +17,7 @@
 ### 🚀 **Method 3: Using Command Palette**
 
 1. Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on Mac)
-2. Type "Java: Run" and select your main class
+2. Type "Java: Run" and select main class
 3. Press Enter
 
 ### 🚀 **Method 4: Using VS Code Tasks**
@@ -50,9 +50,9 @@ If you see compilation errors:
 ## 🗄️ **Database Setup**
 
 Update the environment variables in `.vscode/launch.json`:
-- `DB_HOST`: Your database host
-- `DB_USER`: Your database username  
-- `DB_PASSWORD`: Your database password
-- `DB_NAME`: Your database name
+- `DB_HOST`: database host
+- `DB_USER`: database username  
+- `DB_PASSWORD`: database password
+- `DB_NAME`: database name
 
-**Your Java 21 application is ready to run! 🚀**
+**Java 21 application is ready to run! 🚀**
