@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -15,13 +14,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.stream.Stream;
 
-import org.ahmet.database.DatabaseSetup;
-import org.ahmet.util.DatabaseUtil;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -30,50 +22,31 @@ import org.junit.jupiter.params.provider.CsvFileSource;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
-class ThreeTableDatabaseTest {
+/**
+ * Complex multi-table operations tests using JDBC.
+ * Extends BaseIntegrationTest for DRY principles - eliminates duplicate setup/teardown code.
+ * 
+ * Tests validate:
+ * - Multi-table operations and joins
+ * - Foreign key relationships and referential integrity  
+ * - Complex transaction scenarios
+ * - Order-Product relationship management
+ */
+class ThreeTableDatabaseTest extends BaseIntegrationTest {
 
-    private Connection conn;
     private Statement stmt;
 
-    @BeforeAll
-    static void setup() throws SQLException {
-        String dbName = "testdb_integration";
-
-        // Create the database
-        DatabaseSetup.createDatabase(dbName);
-        
-        // Configure and run Flyway migrations
-        Flyway flyway = Flyway.configure()
-                .dataSource(DatabaseUtil.getDataSource(dbName))
-                .baselineOnMigrate(true)
-                .load();
-        flyway.migrate();
-    }
-
-    @BeforeEach
-    void resetDatabase() throws SQLException {
-        String dbName = "testdb_integration";
-        
-        // Clean and re-apply Flyway migrations before each test
-        Flyway flyway = Flyway.configure()
-                .dataSource(DatabaseUtil.getDataSource(dbName))
-                .cleanDisabled(false)
-                .load();
-        flyway.clean();
-        flyway.migrate();
-        
-        // Get a fresh connection for each test
-        conn = DatabaseUtil.getConnection(dbName);
+    @Override
+    protected void performAdditionalSetup() throws SQLException {
+        // Create statement for this test class
         stmt = conn.createStatement();
     }
 
-    @AfterEach
-    void tearDown() throws SQLException {
+    @Override
+    protected void performAdditionalTeardown() throws SQLException {
+        // Clean up statement
         if (stmt != null && !stmt.isClosed()) {
             stmt.close();
-        }
-        if (conn != null && !conn.isClosed()) {
-            conn.close();
         }
     }
 
@@ -97,8 +70,11 @@ class ThreeTableDatabaseTest {
         );
     }
 
-    @BeforeEach
-    void clearDatabase() throws SQLException {
+    /**
+     * Clear all data from tables while preserving schema.
+     * Used by individual test methods that need clean state.
+     */
+    private void clearAllTables() throws SQLException {
         stmt.executeUpdate("DELETE FROM Order_Product");
         stmt.executeUpdate("DELETE FROM `Order`");
         stmt.executeUpdate("DELETE FROM Product");
@@ -300,15 +276,17 @@ class ThreeTableDatabaseTest {
         ps.close();
 
         // Insert Products into the Order_Product table (Link Products to Order)
-        ps = conn.prepareStatement("INSERT INTO Order_Product (order_id, product_id, quantity) VALUES (?, ?, ?)");
+        ps = conn.prepareStatement("INSERT INTO Order_Product (order_id, product_id, quantity, unit_price) VALUES (?, ?, ?, ?)");
         ps.setInt(1, orderId);  // Use the generated order_id
         ps.setInt(2, smartphoneId);  // Use the generated product_id for 'Smartphone'
         ps.setInt(3, 2);  // Ordered 2 Smartphones
+        ps.setBigDecimal(4, new java.math.BigDecimal("499.99"));  // Unit price for Smartphone
         ps.executeUpdate();
 
         ps.setInt(1, orderId);
         ps.setInt(2, tabletId);  // Use the generated product_id for 'Tablet'
         ps.setInt(3, 1);  // Ordered 1 Tablet
+        ps.setBigDecimal(4, new java.math.BigDecimal("299.99"));  // Unit price for Tablet
         ps.executeUpdate();
 
         // Query for the Order_Product details
@@ -366,10 +344,11 @@ class ThreeTableDatabaseTest {
         ps.close();
 
         // Insert Product into the Order_Product table (Link Product to Order)
-        ps = conn.prepareStatement("INSERT INTO Order_Product (order_id, product_id, quantity) VALUES (?, ?, ?)");
+        ps = conn.prepareStatement("INSERT INTO Order_Product (order_id, product_id, quantity, unit_price) VALUES (?, ?, ?, ?)");
         ps.setInt(1, orderId);
         ps.setInt(2, productId);
         ps.setInt(3, quantity);
+        ps.setBigDecimal(4, new java.math.BigDecimal(String.valueOf(productPrice)));  // Use the product price as unit price
         ps.executeUpdate();
         ps.close();
 
@@ -525,18 +504,20 @@ class ThreeTableDatabaseTest {
     @DisplayName("Test for Inserting an Order_Product with a Non-Existent Order or Product (should fail)")
     void testInsertOrderProductWithNonExistentOrderOrProduct() {
         assertThrows(SQLException.class, () -> {
-            PreparedStatement ps = conn.prepareStatement("INSERT INTO Order_Product (order_id, product_id, quantity) VALUES (?, ?, ?)");
+            PreparedStatement ps = conn.prepareStatement("INSERT INTO Order_Product (order_id, product_id, quantity, unit_price) VALUES (?, ?, ?, ?)");
             ps.setInt(1, 999);  // Non-existent order_id
             ps.setInt(2, 1);    // Assuming product_id = 1 exists
             ps.setInt(3, 1);
+            ps.setBigDecimal(4, new java.math.BigDecimal("10.00"));  // Sample unit price
             ps.executeUpdate();
         });
 
         assertThrows(SQLException.class, () -> {
-            PreparedStatement ps = conn.prepareStatement("INSERT INTO Order_Product (order_id, product_id, quantity) VALUES (?, ?, ?)");
+            PreparedStatement ps = conn.prepareStatement("INSERT INTO Order_Product (order_id, product_id, quantity, unit_price) VALUES (?, ?, ?, ?)");
             ps.setInt(1, 1);    // Assuming order_id = 1 exists
             ps.setInt(2, 999);  // Non-existent product_id
             ps.setInt(3, 1);
+            ps.setBigDecimal(4, new java.math.BigDecimal("10.00"));  // Sample unit price
             ps.executeUpdate();
         });
     }
@@ -559,19 +540,21 @@ class ThreeTableDatabaseTest {
     @DisplayName("Test for Inserting an Order_Product with a Non-Existent Order or Product (should fail)")
     void testInsertOrderProductWithNonExistentOrderOrProduct(int orderId, int productId, int quantity) {
         SQLException exception1 = assertThrows(SQLException.class, () -> {
-            PreparedStatement ps = conn.prepareStatement("INSERT INTO Order_Product (order_id, product_id, quantity) VALUES (?, ?, ?)");
+            PreparedStatement ps = conn.prepareStatement("INSERT INTO Order_Product (order_id, product_id, quantity, unit_price) VALUES (?, ?, ?, ?)");
             ps.setInt(1, orderId);
             ps.setInt(2, productId);
             ps.setInt(3, quantity);
+            ps.setBigDecimal(4, new java.math.BigDecimal("10.00"));  // Sample unit price
             ps.executeUpdate();
         });
         assertNotNull(exception1, "SQLException should be thrown for non-existent order_id");
 
         SQLException exception2 = assertThrows(SQLException.class, () -> {
-            PreparedStatement ps = conn.prepareStatement("INSERT INTO Order_Product (order_id, product_id, quantity) VALUES (?, ?, ?)");
+            PreparedStatement ps = conn.prepareStatement("INSERT INTO Order_Product (order_id, product_id, quantity, unit_price) VALUES (?, ?, ?, ?)");
             ps.setInt(1, 1);    // Assuming order_id = 1 exists
             ps.setInt(2, 999);  // Non-existent product_id
             ps.setInt(3, 1);
+            ps.setBigDecimal(4, new java.math.BigDecimal("10.00"));  // Sample unit price
             ps.executeUpdate();
         });
         assertNotNull(exception2, "SQLException should be thrown for non-existent product_id");
