@@ -18,8 +18,10 @@ import java.util.stream.Stream;
 import org.ahmet.database.DatabaseSetup;
 import org.ahmet.util.DatabaseUtil;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -30,8 +32,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 class ThreeTableDatabaseTest {
 
-    private static Connection conn;
-    private static Statement stmt;
+    private Connection conn;
+    private Statement stmt;
 
     @BeforeAll
     static void setup() throws SQLException {
@@ -39,54 +41,40 @@ class ThreeTableDatabaseTest {
 
         // Create the database
         DatabaseSetup.createDatabase(dbName);
-
-        // Establish the JDBC connection
-        conn = DatabaseUtil.getConnection(dbName);
-        stmt = conn.createStatement();
-
-        // Drop and recreate tables for testing
-        stmt.executeUpdate("DROP TABLE IF EXISTS Order_Product");
-        stmt.executeUpdate("DROP TABLE IF EXISTS `Order`");
-        stmt.executeUpdate("DROP TABLE IF EXISTS Product");
-        stmt.executeUpdate("DROP TABLE IF EXISTS Customer");
-
-        // Create Customer Table
-        stmt.executeUpdate("CREATE TABLE Customer (" +
-                "customer_id INT AUTO_INCREMENT PRIMARY KEY, " +
-                "name VARCHAR(100) NOT NULL, " +
-                "email VARCHAR(100) NOT NULL UNIQUE, " +
-                "phone_number VARCHAR(15) NOT NULL" +
-                ")");
-
-        // Create Product Table
-        stmt.executeUpdate("CREATE TABLE Product (" +
-                "product_id INT AUTO_INCREMENT PRIMARY KEY, " +
-                "product_name VARCHAR(100) NOT NULL, " +
-                "price DECIMAL(10, 2) NOT NULL" +
-                ")");
-
-        // Create Order Table
-        stmt.executeUpdate("CREATE TABLE `Order` (" +
-                "order_id INT AUTO_INCREMENT PRIMARY KEY, " +
-                "order_date DATE NOT NULL, " +
-                "customer_id INT NOT NULL, " +
-                "FOREIGN KEY (customer_id) REFERENCES Customer(customer_id) ON DELETE CASCADE" +
-                ")");
-
-        // Create Order_Product Junction Table
-        stmt.executeUpdate("CREATE TABLE Order_Product (" +
-                "order_id INT NOT NULL, " +
-                "product_id INT NOT NULL, " +
-                "quantity INT NOT NULL, " +
-                "PRIMARY KEY (order_id, product_id), " +
-                "FOREIGN KEY (order_id) REFERENCES `Order`(order_id) ON DELETE CASCADE, " +
-                "FOREIGN KEY (product_id) REFERENCES Product(product_id) ON DELETE CASCADE" +
-                ")");
+        
+        // Configure and run Flyway migrations
+        Flyway flyway = Flyway.configure()
+                .dataSource(DatabaseUtil.getDataSource(dbName))
+                .baselineOnMigrate(true)
+                .load();
+        flyway.migrate();
     }
 
-    @AfterAll
-    static void teardown() throws SQLException {
-        DatabaseUtil.closeResources(conn, stmt, null);
+    @BeforeEach
+    void resetDatabase() throws SQLException {
+        String dbName = "testdb_integration";
+        
+        // Clean and re-apply Flyway migrations before each test
+        Flyway flyway = Flyway.configure()
+                .dataSource(DatabaseUtil.getDataSource(dbName))
+                .cleanDisabled(false)
+                .load();
+        flyway.clean();
+        flyway.migrate();
+        
+        // Get a fresh connection for each test
+        conn = DatabaseUtil.getConnection(dbName);
+        stmt = conn.createStatement();
+    }
+
+    @AfterEach
+    void tearDown() throws SQLException {
+        if (stmt != null && !stmt.isClosed()) {
+            stmt.close();
+        }
+        if (conn != null && !conn.isClosed()) {
+            conn.close();
+        }
     }
 
     static Stream<Arguments> provideCustomerData() {
