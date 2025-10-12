@@ -1,19 +1,32 @@
 // src/test/java/databaseTests/ThreeTableDatabaseTest.java
 package databaseTests;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.stream.Stream;
+
 import org.ahmet.database.DatabaseSetup;
 import org.ahmet.util.DatabaseUtil;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvFileSource;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
-
-import java.sql.*;
-import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class ThreeTableDatabaseTest {
 
@@ -22,7 +35,7 @@ class ThreeTableDatabaseTest {
 
     @BeforeAll
     static void setup() throws SQLException {
-        String dbName = DatabaseUtil.getDatabaseName();
+        String dbName = "testdb_integration";
 
         // Create the database
         DatabaseSetup.createDatabase(dbName);
