@@ -1,14 +1,15 @@
 package org.ahmet.config;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-
-import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.sql.DataSource;
+
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
 /**
  * Database configuration class responsible for managing database connections
@@ -46,7 +47,7 @@ public class DatabaseConfig {
             String host = getProperty("database.host", "localhost");
             String port = getProperty("database.port", "3306");
             String dbName = getProperty("database.name", "testdb");
-            String jdbcUrl = String.format("jdbc:mysql://%s:%s/%s?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true", 
+            String jdbcUrl = String.format("jdbc:mysql://%s:%s/%s?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true", 
                                          host, port, dbName);
             
             config.setJdbcUrl(jdbcUrl);
@@ -74,7 +75,30 @@ public class DatabaseConfig {
     }
 
     private static String getProperty(String key, String defaultValue) {
+        // First check environment variables based on property key
+        String envValue = getEnvironmentValue(key);
+        if (envValue != null) {
+            return envValue;
+        }
+        // Then check system properties and properties file
         return properties.getProperty(key, System.getProperty(key, defaultValue));
+    }
+    
+    private static String getEnvironmentValue(String propertyKey) {
+        // Map property keys to environment variable names
+        switch (propertyKey) {
+            case "database.name": return System.getenv("DB_NAME");
+            case "database.user": return System.getenv("DB_USER");
+            case "database.password": return System.getenv("DB_PASSWORD");
+            case "database.host": return System.getenv("DB_HOST");
+            case "database.port": return System.getenv("DB_PORT");
+            case "database.url": return System.getenv("DB_URL");
+            case "database.pool.maximum-size": return System.getenv("DB_POOL_SIZE");
+            case "database.pool.connection-timeout": return System.getenv("DB_CONNECTION_TIMEOUT");
+            case "database.pool.idle-timeout": return System.getenv("DB_IDLE_TIMEOUT");
+            case "database.pool.max-lifetime": return System.getenv("DB_MAX_LIFETIME");
+            default: return null;
+        }
     }
 
     public static DataSource getDataSource() {
