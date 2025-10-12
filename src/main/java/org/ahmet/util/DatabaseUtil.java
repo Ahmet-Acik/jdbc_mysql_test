@@ -1,16 +1,21 @@
 // src/main/java/org/ahmet/util/DatabaseUtil.java
 package org.ahmet.util;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-
-import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.sql.DataSource;
+
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
 public class DatabaseUtil {
     private static final Logger LOGGER = Logger.getLogger(DatabaseUtil.class.getName());
@@ -37,7 +42,7 @@ public class DatabaseUtil {
 
     public static DataSource getDataSource(String dbName) {
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl("jdbc:mysql://localhost:3306/" + properties.getProperty("database.name"));
+        config.setJdbcUrl("jdbc:mysql://localhost:3306/" + dbName);
         config.setUsername(properties.getProperty("database.user"));
         config.setPassword(properties.getProperty("database.password"));
         config.setMaximumPoolSize(5); // Reduce the maximum pool size
