@@ -1,0 +1,217 @@
+package org.ahmet.service;
+
+import org.ahmet.dao.CustomerDao;
+import org.ahmet.model.Customer;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+@DisplayName("Customer Service Tests")
+class CustomerServiceTest {
+
+    @Mock
+    private CustomerDao customerDao;
+
+    private CustomerService customerService;
+    private Customer validCustomer;
+
+    @BeforeEach
+    void setUp() {
+        customerService = new CustomerService(customerDao);
+        validCustomer = new Customer("John Doe", "john.doe@example.com", "1234567890");
+    }
+
+    @Test
+    @DisplayName("Should create customer successfully")
+    void createCustomer_Success() throws SQLException {
+        // Given
+        when(customerDao.findByEmail(validCustomer.getEmail())).thenReturn(Optional.empty());
+        when(customerDao.createCustomer(validCustomer)).thenReturn(1);
+
+        // When
+        Customer result = customerService.createCustomer(validCustomer);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(validCustomer.getEmail(), result.getEmail());
+        verify(customerDao).findByEmail(validCustomer.getEmail());
+        verify(customerDao).createCustomer(validCustomer);
+    }
+
+    @Test
+    @DisplayName("Should throw exception when creating customer with existing email")
+    void createCustomer_ExistingEmail_ThrowsException() throws SQLException {
+        // Given
+        when(customerDao.findByEmail(validCustomer.getEmail())).thenReturn(Optional.of(validCustomer));
+
+        // When & Then
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> customerService.createCustomer(validCustomer));
+        
+        assertTrue(exception.getMessage().contains("already exists"));
+        verify(customerDao).findByEmail(validCustomer.getEmail());
+        verify(customerDao, never()).createCustomer(any(Customer.class));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"   ", "\t", "\n"})
+    @DisplayName("Should throw exception for invalid names")
+    void createCustomer_InvalidName_ThrowsException(String invalidName) {
+        // Given
+        validCustomer.setName(invalidName);
+
+        // When & Then
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> customerService.createCustomer(validCustomer));
+        
+        assertEquals("Customer name is required", exception.getMessage());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"invalid-email", "test@", "@example.com", "test"})
+    @DisplayName("Should throw exception for invalid email formats")
+    void createCustomer_InvalidEmail_ThrowsException(String invalidEmail) {
+        // Given
+        validCustomer.setEmail(invalidEmail);
+
+        // When & Then
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> customerService.createCustomer(validCustomer));
+        
+        assertEquals("Invalid email format", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should retrieve customer by ID successfully")
+    void getCustomerById_Success() throws SQLException {
+        // Given
+        int customerId = 1;
+        when(customerDao.findById(customerId)).thenReturn(Optional.of(validCustomer));
+
+        // When
+        Optional<Customer> result = customerService.getCustomerById(customerId);
+
+        // Then
+        assertTrue(result.isPresent());
+        assertEquals(validCustomer, result.get());
+        verify(customerDao).findById(customerId);
+    }
+
+    @Test
+    @DisplayName("Should return empty optional when customer not found")
+    void getCustomerById_NotFound_ReturnsEmpty() throws SQLException {
+        // Given
+        int customerId = 999;
+        when(customerDao.findById(customerId)).thenReturn(Optional.empty());
+
+        // When
+        Optional<Customer> result = customerService.getCustomerById(customerId);
+
+        // Then
+        assertFalse(result.isPresent());
+        verify(customerDao).findById(customerId);
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {0, -1, -100})
+    @DisplayName("Should throw exception for invalid customer IDs")
+    void getCustomerById_InvalidId_ThrowsException(int invalidId) {
+        // When & Then
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> customerService.getCustomerById(invalidId));
+        
+        assertEquals("Customer ID must be positive", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should retrieve all customers successfully")
+    void getAllCustomers_Success() throws SQLException {
+        // Given
+        Customer customer2 = new Customer("Jane Smith", "jane@example.com", "0987654321");
+        List<Customer> customers = Arrays.asList(validCustomer, customer2);
+        when(customerDao.findAll()).thenReturn(customers);
+
+        // When
+        List<Customer> result = customerService.getAllCustomers();
+
+        // Then
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertTrue(result.contains(validCustomer));
+        assertTrue(result.contains(customer2));
+        verify(customerDao).findAll();
+    }
+
+    @Test
+    @DisplayName("Should update customer successfully")
+    void updateCustomer_Success() throws SQLException {
+        // Given
+        validCustomer.setCustomerId(1);
+        when(customerDao.updateCustomer(validCustomer)).thenReturn(true);
+
+        // When
+        boolean result = customerService.updateCustomer(validCustomer);
+
+        // Then
+        assertTrue(result);
+        verify(customerDao).updateCustomer(validCustomer);
+    }
+
+    @Test
+    @DisplayName("Should throw exception when updating customer without ID")
+    void updateCustomer_NoId_ThrowsException() {
+        // Given
+        validCustomer.setCustomerId(null);
+
+        // When & Then
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> customerService.updateCustomer(validCustomer));
+        
+        assertTrue(exception.getMessage().contains("Valid customer ID is required"));
+    }
+
+    @Test
+    @DisplayName("Should delete customer successfully")
+    void deleteCustomer_Success() throws SQLException {
+        // Given
+        int customerId = 1;
+        when(customerDao.deleteCustomer(customerId)).thenReturn(true);
+
+        // When
+        boolean result = customerService.deleteCustomer(customerId);
+
+        // Then
+        assertTrue(result);
+        verify(customerDao).deleteCustomer(customerId);
+    }
+
+    @Test
+    @DisplayName("Should handle SQL exceptions properly")
+    void createCustomer_SQLException_ThrowsRuntimeException() throws SQLException {
+        // Given
+        when(customerDao.findByEmail(validCustomer.getEmail())).thenThrow(new SQLException("Database error"));
+
+        // When & Then
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> customerService.createCustomer(validCustomer));
+        
+        assertEquals("Failed to create customer", exception.getMessage());
+        assertTrue(exception.getCause() instanceof SQLException);
+    }
+}
