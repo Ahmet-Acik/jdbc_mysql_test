@@ -36,3 +36,10 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+### Database Configuration ###
+# Ignore database properties files with sensitive connection info
+src/main/resources/database.properties
+src/main/resources/database.properties
+src/test/resources/database.properties
+**/database.properties
