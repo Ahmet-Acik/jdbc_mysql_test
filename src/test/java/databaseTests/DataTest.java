@@ -1,6 +1,19 @@
 package databaseTests;
 
-import com.zaxxer.hikari.HikariDataSource;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.logging.Logger;
+
 import org.ahmet.database.DatabaseSetup;
 import org.ahmet.util.DatabaseUtil;
 import org.flywaydb.core.Flyway;
@@ -9,22 +22,14 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.*;
-import java.util.logging.Logger;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import com.zaxxer.hikari.HikariDataSource;
 
 public class DataTest {
 
     private static Connection conn;
     private static HikariDataSource dataSource;
     private static final Logger LOGGER = Logger.getLogger(DatabaseUtil.class.getName());
-    private static final String dbName = DatabaseUtil.getDatabaseName();
+    private static final String dbName = "testdb_integration"; // Use separate test database
     private static final Properties properties = new Properties();
 
     @BeforeAll
@@ -69,6 +74,7 @@ public class DataTest {
         // Clean and re-apply Flyway migrations before each test
         Flyway flyway = Flyway.configure()
                 .dataSource(DatabaseUtil.getDataSource(dbName))
+                .cleanDisabled(false)  // Enable clean for tests
                 .load();
         flyway.clean();
         flyway.migrate();
@@ -223,7 +229,8 @@ public class DataTest {
                      "JOIN `Order` o ON c.customer_id = o.customer_id " +
                      "JOIN Order_Product op ON o.order_id = op.order_id " +
                      "JOIN Product p ON op.product_id = p.product_id " +
-                     "GROUP BY c.name")) {
+                     "GROUP BY c.name " +
+                     "ORDER BY total_spent DESC, c.name ASC")) {
             while (rs.next()) {
                 Map<String, Object> customerSpending = new HashMap<>();
                 customerSpending.put("name", rs.getString("name"));
@@ -235,17 +242,17 @@ public class DataTest {
         }
 
         assertEquals(20, customerSpendingList.size());
-        assertEquals("Thomas Perrault", customerSpendingList.get(0).get("name"));
-        assertEquals(17.0, customerSpendingList.get(0).get("total_spent"));
+        assertEquals("Elise Renault", customerSpendingList.get(0).get("name"));
+        assertEquals(20.5, customerSpendingList.get(0).get("total_spent"));
 
-        assertEquals("Pauline Robert", customerSpendingList.get(1).get("name"));
-        assertEquals(10.0, customerSpendingList.get(1).get("total_spent"));
+        assertEquals("Nicolas Gauthier", customerSpendingList.get(1).get("name"));
+        assertEquals(17.25, customerSpendingList.get(1).get("total_spent"));
 
-        assertEquals("Marie Leroy", customerSpendingList.get(2).get("name"));
-        assertEquals(11.0, customerSpendingList.get(2).get("total_spent"));
+        assertEquals("Thomas Perrault", customerSpendingList.get(2).get("name"));
+        assertEquals(17.0, customerSpendingList.get(2).get("total_spent"));
 
-        assertEquals("Francois Dubois", customerSpendingList.get(3).get("name"));
-        assertEquals(3.75, customerSpendingList.get(3).get("total_spent"));
+        assertEquals("Hugo Blanchard", customerSpendingList.get(3).get("name"));
+        assertEquals(16.0, customerSpendingList.get(3).get("total_spent"));
     }
 
     /*
