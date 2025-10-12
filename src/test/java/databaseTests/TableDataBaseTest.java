@@ -7,10 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.sql.Connection;
+
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -18,105 +15,48 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.stream.Stream;
 
-import org.ahmet.database.DatabaseSetup;
-import org.ahmet.util.DatabaseUtil;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvFileSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
-public class TableDataBaseTest {
+/**
+ * Comprehensive table operations tests using JDBC.
+ * Extends BaseIntegrationTest for DRY principles - eliminates duplicate setup/teardown code.
+ * 
+ * Tests validate:
+ * - CRUD operations using PreparedStatement
+ * - Parameterized tests with CSV data sources
+ * - SQL injection prevention
+ * - Transaction handling
+ */
+public class TableDataBaseTest extends BaseIntegrationTest {
 
-    private static Connection conn;
-    private static Statement stmt;
+    private Statement stmt;
 
     private static final String INSERT_CUSTOMER = "INSERT INTO Customer (name, email, phone_number) VALUES (?, ?, ?)";
     private static final String INSERT_PRODUCT = "INSERT INTO Product (product_name, price) VALUES (?, ?)";
     private static final String INSERT_ORDER = "INSERT INTO `Order` (order_date, customer_id) VALUES (?, ?)";
-    private static final String INSERT_ORDER_PRODUCT = "INSERT INTO Order_Product (order_id, product_id, quantity) VALUES (?, ?, ?)";
+    private static final String INSERT_ORDER_PRODUCT = "INSERT INTO Order_Product (order_id, product_id, quantity, unit_price) VALUES (?, ?, ?, ?)";
     private static final String SELECT_CUSTOMER_BY_EMAIL = "SELECT * FROM Customer WHERE email = ?";
     private static final String SELECT_PRODUCT_BY_NAME = "SELECT * FROM Product WHERE product_name = ?";
     private static final String SELECT_ORDER_PRODUCT_BY_ORDER_ID = "SELECT * FROM Order_Product WHERE order_id = ?";
     private static final String UPDATE_CUSTOMER_PHONE = "UPDATE Customer SET phone_number = ? WHERE email = ?";
     private static final String DELETE_PRODUCT_BY_NAME = "DELETE FROM Product WHERE product_name = ?";
 
-    @BeforeAll
-    static void setup() throws SQLException, IOException {
-
-        // Use separate test database
-        String dbName = "testdb_integration";
-
-        // Create the database
-        DatabaseSetup.createDatabase(dbName);
-
-        // Establish the JDBC connection
-        conn = DatabaseUtil.getConnection(dbName);
+    @Override
+    protected void performAdditionalSetup() throws SQLException {
+        // Create statement for this test class
         stmt = conn.createStatement();
+    }
 
-//        // Drop and recreate tables for testing
-//        stmt.executeUpdate("DROP TABLE IF EXISTS Order_Product");
-//        stmt.executeUpdate("DROP TABLE IF EXISTS `Order`");
-//        stmt.executeUpdate("DROP TABLE IF EXISTS Product");
-//        stmt.executeUpdate("DROP TABLE IF EXISTS Customer");
-//
-//        // Create Customer Table
-//        stmt.executeUpdate("CREATE TABLE Customer (" +
-//                "customer_id INT AUTO_INCREMENT PRIMARY KEY, " +
-//                "name VARCHAR(100) NOT NULL, " +
-//                "email VARCHAR(100) NOT NULL UNIQUE, " +
-//                "phone_number VARCHAR(15) NOT NULL" +
-//                ")");
-//
-//        // Create Product Table
-//        stmt.executeUpdate("CREATE TABLE Product (" +
-//                "product_id INT AUTO_INCREMENT PRIMARY KEY, " +
-//                "product_name VARCHAR(100) NOT NULL, " +
-//                "price DECIMAL(10, 2) NOT NULL CHECK (price >= 0)" +
-//                ")");
-//
-//        // Create Order Table
-//        stmt.executeUpdate("CREATE TABLE `Order` (" +
-//                "order_id INT AUTO_INCREMENT PRIMARY KEY, " +
-//                "order_date DATE NOT NULL, " +
-//                "customer_id INT NOT NULL, " +
-//                "FOREIGN KEY (customer_id) REFERENCES Customer(customer_id) ON DELETE CASCADE" +
-//                ")");
-//
-//        // Create Order_Product Junction Table
-//        stmt.executeUpdate("CREATE TABLE Order_Product (" +
-//                "order_id INT NOT NULL, " +
-//                "product_id INT NOT NULL, " +
-//                "quantity INT NOT NULL, " +
-//                "PRIMARY KEY (order_id, product_id), " +
-//                "FOREIGN KEY (order_id) REFERENCES `Order`(order_id) ON DELETE CASCADE, " +
-//                "FOREIGN KEY (product_id) REFERENCES Product(product_id) ON DELETE CASCADE" +
-//                ")");
-
-
-        // Read and execute the schema SQL file
-        String schemaSql = new String(Files.readAllBytes(Paths.get("src/test/resources/schema.sql")));
-        for (String sql : schemaSql.split(";")) {
-            if (!sql.trim().isEmpty()) {
-                stmt.execute(sql);
-            }
+    @Override
+    protected void performAdditionalTeardown() throws SQLException {
+        // Clean up statement
+        if (stmt != null && !stmt.isClosed()) {
+            stmt.close();
         }
-    }
-
-    @AfterAll
-    static void teardown() throws SQLException {
-        DatabaseUtil.closeResources(conn, stmt, null);
-    }
-
-    @BeforeEach
-    void clearDatabase() throws SQLException {
-        stmt.executeUpdate("DELETE FROM Order_Product");
-        stmt.executeUpdate("DELETE FROM `Order`");
-        stmt.executeUpdate("DELETE FROM Product");
-        stmt.executeUpdate("DELETE FROM Customer");
     }
 
     static Stream<Arguments> provideCustomerData() {
@@ -277,6 +217,7 @@ public class TableDataBaseTest {
             ps.setInt(1, orderId);
             ps.setInt(2, productId);
             ps.setInt(3, quantity);
+            ps.setBigDecimal(4, new java.math.BigDecimal(productPrice));
             ps.executeUpdate();
         }
 
@@ -365,6 +306,7 @@ public class TableDataBaseTest {
                 ps.setInt(1, orderId);
                 ps.setInt(2, productId);
                 ps.setInt(3, quantity);
+                ps.setBigDecimal(4, new java.math.BigDecimal("10.00"));
                 ps.executeUpdate();
             }
         });
@@ -375,6 +317,7 @@ public class TableDataBaseTest {
                 ps.setInt(1, 1);    // Assuming order_id = 1 exists
                 ps.setInt(2, 999);  // Non-existent product_id
                 ps.setInt(3, 1);
+                ps.setBigDecimal(4, new java.math.BigDecimal("10.00"));
                 ps.executeUpdate();
             }
         });
