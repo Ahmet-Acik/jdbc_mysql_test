@@ -8,7 +8,9 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -20,6 +22,9 @@ import com.zaxxer.hikari.HikariDataSource;
 public class DatabaseUtil {
     private static final Logger LOGGER = Logger.getLogger(DatabaseUtil.class.getName());
     private static final Properties properties = new Properties();
+    
+    // Cache for DataSource instances to prevent creating multiple pools for the same database
+    private static final Map<String, HikariDataSource> dataSourceCache = new ConcurrentHashMap<>();
 
     static {
         try (InputStream input = DatabaseUtil.class.getClassLoader().getResourceAsStream("database.properties")) {
@@ -40,15 +45,39 @@ public class DatabaseUtil {
         return DriverManager.getConnection(url, user, password);
     }
 
+    /**
+     * Gets or creates a DataSource for the specified database.
+     * Uses singleton pattern to prevent multiple connection pools for the same database.
+     */
     public static DataSource getDataSource(String dbName) {
+        return dataSourceCache.computeIfAbsent(dbName, DatabaseUtil::createDataSource);
+    }
+    
+    /**
+     * Creates a new HikariDataSource for the specified database.
+     * Private method used by getDataSource singleton pattern.
+     */
+    private static HikariDataSource createDataSource(String dbName) {
+        LOGGER.info("Creating new DataSource for database: " + dbName);
+        
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl("jdbc:mysql://localhost:3306/" + dbName);
         config.setUsername(properties.getProperty("database.user"));
         config.setPassword(properties.getProperty("database.password"));
-        config.setMaximumPoolSize(5); // Reduce the maximum pool size
-        config.setConnectionTimeout(30000); // 30 seconds
-        config.setIdleTimeout(60000); // 60 seconds
-        config.setMaxLifetime(1800000); // 30 minutes
+        
+        // Optimized connection pool settings to prevent exhaustion
+        config.setMaximumPoolSize(3); // Reduce maximum pool size for testing
+        config.setMinimumIdle(1); // Keep at least one connection idle
+        config.setConnectionTimeout(10000); // 10 seconds timeout
+        config.setIdleTimeout(30000); // 30 seconds idle timeout
+        config.setMaxLifetime(600000); // 10 minutes max lifetime
+        config.setLeakDetectionThreshold(5000); // 5 seconds leak detection
+        
+        // Additional settings for better resource management
+        config.setPoolName("HikariPool-" + dbName);
+        config.setAutoCommit(true);
+        config.setIsolateInternalQueries(false);
+        
         return new HikariDataSource(config);
     }
 
@@ -76,6 +105,39 @@ public class DatabaseUtil {
             }
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error closing resources", e);
+        }
+    }
+    
+    /**
+     * Closes all cached DataSources to prevent resource leaks.
+     * Should be called during application shutdown or test cleanup.
+     */
+    public static void closeAllDataSources() {
+        LOGGER.info("Closing all cached DataSources");
+        dataSourceCache.forEach((dbName, dataSource) -> {
+            try {
+                LOGGER.info("Closing DataSource for database: " + dbName);
+                dataSource.close();
+            } catch (Exception e) {
+                LOGGER.log(Level.WARNING, "Error closing DataSource for " + dbName, e);
+            }
+        });
+        dataSourceCache.clear();
+    }
+    
+    /**
+     * Closes a specific DataSource and removes it from cache.
+     * Useful for cleaning up after individual test databases.
+     */
+    public static void closeDataSource(String dbName) {
+        HikariDataSource dataSource = dataSourceCache.remove(dbName);
+        if (dataSource != null) {
+            try {
+                LOGGER.info("Closing DataSource for database: " + dbName);
+                dataSource.close();
+            } catch (Exception e) {
+                LOGGER.log(Level.WARNING, "Error closing DataSource for " + dbName, e);
+            }
         }
     }
 }
