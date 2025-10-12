@@ -61,7 +61,7 @@ src/main/java/org/ahmet/
 3. **Configure environment variables** (optional)
    ```bash
    cp .env.template .env
-   # Edit .env with your preferred settings
+   # Edit .env with preferred settings
    ```
 
 4. **Run the application**
@@ -75,7 +75,7 @@ If you prefer not to use Docker:
 
 1. Install MySQL 8.0+
 2. Create database: `CREATE DATABASE testdb;`
-3. Update `src/main/resources/database.properties` with your credentials
+3. Update `src/main/resources/database.properties` with credentials
 4. Run migrations: `mvn flyway:migrate`
 
 ## 🧪 Testing
