@@ -1,6 +1,6 @@
 # 🎉 Java 21 Upgrade: COMPLETE SUCCESS! 
 
-## ✅ **Final Status: YOUR APPLICATION IS WORKING WITH JAVA 21!**
+## ✅ **Final Status: APPLICATION IS WORKING WITH JAVA 21!**
 
 ### 🎯 **Summary**
 - **Java Version**: Successfully upgraded from Java 17 → Java 21 LTS
@@ -11,12 +11,12 @@
 - **Dependencies**: ✅ All libraries compatible with Java 21
 - **Unit Tests**: ✅ 20/21 tests passing (1 pre-existing failure)
 
-### 🚀 **How to Run Your Java 21 Application**
+### 🚀 **How to Run Java 21 Application**
 
 **Method 1: VS Code (Recommended)**
 1. Open `src/main/java/org/ahmet/Main.java`
 2. Click the **"Run"** button above the `main` method
-3. Your Java 21 application will start! 🎉
+3. Java 21 application will start! 🎉
 
 **Method 2: Terminal**
 ```bash
@@ -55,7 +55,7 @@ java -jar target/jdbc-mysql-test-1.0-SNAPSHOT.jar
 
 ### 🎁 **Java 21 Features Now Available**
 
-Your application can now use:
+application can now use:
 - **Virtual Threads** (Project Loom) - `Thread.ofVirtual().start()`
 - **Pattern Matching for switch** - Enhanced switch expressions
 - **Record Patterns** - Pattern matching with records
@@ -71,9 +71,9 @@ Your application can now use:
 
 ### 🎉 **CONGRATULATIONS!**
 
-Your Java JDBC MySQL test application is now successfully running on **Java 21 LTS** with full VS Code integration! 
+Java JDBC MySQL test application is now successfully running on **Java 21 LTS** with full VS Code integration! 
 
-**Click "Run" in VS Code and enjoy your upgraded Java 21 application!** 🚀
+**Click "Run" in VS Code and enjoy upgraded Java 21 application!** 🚀
 
 ---
 *Upgrade completed: October 12, 2025*
