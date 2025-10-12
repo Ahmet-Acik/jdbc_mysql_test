@@ -1,7 +1,7 @@
 # Java 21 Upgrade Verification
 
 ## Upgrade Summary
-Your project has been successfully upgraded from Java 17 to Java 21 (LTS).
+project has been successfully upgraded from Java 17 to Java 21 (LTS).
 
 ## Changes Made
 
@@ -41,7 +41,7 @@ mvn exec:java -Dexec.mainClass="org.ahmet.Main"
 
 ## Java 21 Features Available
 
-Your project can now use Java 21 features including:
+project can now use Java 21 features including:
 
 - **Pattern Matching for switch** (JEP 441)
 - **Record Patterns** (JEP 440) 
@@ -56,8 +56,8 @@ Your project can now use Java 21 features including:
 
 2. **Pre-existing Test Issues**: Some tests fail due to database configuration issues (not related to the Java upgrade).
 
-3. **Dependencies**: All your current dependencies (MySQL Connector, HikariCP, Flyway, JUnit 5, Logback, SLF4J) are fully compatible with Java 21.
+3. **Dependencies**: All current dependencies (MySQL Connector, HikariCP, Flyway, JUnit 5, Logback, SLF4J) are fully compatible with Java 21.
 
 ## Recommendation
 
-The Java 21 upgrade is complete and successful. Your application is now running on the latest LTS version of Java with access to all the performance improvements and new features.
+The Java 21 upgrade is complete and successful. application is now running on the latest LTS version of Java with access to all the performance improvements and new features.
