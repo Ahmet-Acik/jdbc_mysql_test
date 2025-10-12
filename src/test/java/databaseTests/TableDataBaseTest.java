@@ -1,5 +1,23 @@
 package databaseTests;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.stream.Stream;
+
 import org.ahmet.database.DatabaseSetup;
 import org.ahmet.util.DatabaseUtil;
 import org.junit.jupiter.api.AfterAll;
@@ -10,14 +28,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvFileSource;
 import org.junit.jupiter.params.provider.MethodSource;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.sql.*;
-import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 public class TableDataBaseTest {
 
@@ -37,8 +47,8 @@ public class TableDataBaseTest {
     @BeforeAll
     static void setup() throws SQLException, IOException {
 
-        // Get the database name from the properties file
-        String dbName = DatabaseUtil.getDatabaseName();
+        // Use separate test database
+        String dbName = "testdb_integration";
 
         // Create the database
         DatabaseSetup.createDatabase(dbName);
