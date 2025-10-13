@@ -2,28 +2,32 @@
 
 This project demonstrates **ALL major JDBC features** through 91 practical test cases following **DRY (Don't Repeat Yourself)** principles. Our architecture eliminates code duplication while maintaining comprehensive JDBC feature coverage.
 
-## 🏗️ DRY Architecture Overview
+## DRY Architecture Overview
 
 **BaseIntegrationTest**: Single source of truth for all database tests
+
 - **Singleton DataSource Management**: Prevents connection pool exhaustion
 - **Automatic Database Reset**: Clean state for every test method  
 - **Shared Connection Pool**: HikariCP optimization across all tests
 - **Template Method Pattern**: Extensible hooks for test-specific needs
 
-## 🚀 Quick Start
+## Quick Start
 
 1. **Run the setup script**:
+
    ```bash
    ./setup-dev-env.sh
    ```
 
 2. **Run all JDBC feature tests (91 tests)**:
+
    ```bash
    mvn clean verify
    # Results: Tests run: 91, Failures: 0, Errors: 0, Skipped: 0
    ```
 
 3. **Run specific feature demonstrations**:
+
    ```bash
    # Basic CRUD operations (17 tests)
    mvn test -Dtest=DataTest
@@ -41,9 +45,9 @@ This project demonstrates **ALL major JDBC features** through 91 practical test 
    mvn test -Dtest=CustomerServiceTest,CustomerServiceAdvancedTest
    ```
 
-## 📋 Complete JDBC Feature Coverage
+## Complete JDBC Feature Coverage
 
-### ✅ Core JDBC Features (Implemented)
+### Core JDBC Features (Implemented)
 
 | Feature | Implementation | Test Class | Description |
 |---------|----------------|------------|-------------|
@@ -61,7 +65,7 @@ This project demonstrates **ALL major JDBC features** through 91 practical test 
 | **Connection Pooling** | `DatabaseUtil.java` (HikariCP) | All tests | Efficient connection management |
 | **Exception Handling** | `DatabaseException.java` | Service tests | Proper error management |
 
-### 🔧 Advanced Patterns & Best Practices
+### Advanced Patterns & Best Practices
 
 | Pattern | Implementation | Benefits |
 |---------|----------------|----------|
@@ -74,9 +78,9 @@ This project demonstrates **ALL major JDBC features** through 91 practical test 
 | **Optional Types** | Modern Java patterns | Null-safe operations |
 | **Builder Pattern** | Customer creation | Fluent object construction |
 
-## 📂 File Structure & Purpose
+## File Structure & Purpose
 
-### 🧪 DRY Test Architecture (91 Tests)
+### DRY Test Architecture (91 Tests)
 
 ```
 src/test/java/
@@ -94,13 +98,14 @@ src/test/java/
 ```
 
 **DRY Architecture Benefits:**
+
 - **60% Code Reduction**: Eliminated duplicate setup/teardown methods
 - **Single DataSource**: Prevents connection pool exhaustion across all tests
 - **Automatic Cleanup**: Database reset between tests for isolation
 - **Shared Infrastructure**: Common utilities and connection management
 - **100% Test Success**: All 91 tests pass consistently
 
-### 🏗️ Core Implementation
+### Core Implementation
 
 ```
 src/main/java/org/ahmet/
@@ -124,9 +129,10 @@ src/main/java/org/ahmet/
     └── DatabaseUtil.java               # Connection management & utilities
 ```
 
-## 🎯 Key Learning Examples
+## Key Learning Examples
 
 ### 1. PreparedStatement vs Statement
+
 ```java
 // ❌ Vulnerable to SQL injection
 Statement stmt = connection.createStatement();
@@ -139,6 +145,7 @@ ResultSet rs = pstmt.executeQuery();
 ```
 
 ### 2. Transaction Management
+
 ```java
 connection.setAutoCommit(false);
 try {
@@ -154,6 +161,7 @@ try {
 ```
 
 ### 3. Batch Processing
+
 ```java
 PreparedStatement pstmt = connection.prepareStatement("INSERT INTO customers (name, email) VALUES (?, ?)");
 
@@ -167,6 +175,7 @@ int[] results = pstmt.executeBatch(); // Execute all at once
 ```
 
 ### 4. Stored Procedures
+
 ```java
 CallableStatement cstmt = connection.prepareCall("{CALL GetCustomerOrderCount(?, ?)}");
 cstmt.setInt(1, customerId);           // IN parameter
@@ -177,6 +186,7 @@ int orderCount = cstmt.getInt(2);      // Retrieve OUT parameter
 ```
 
 ### 5. Database Metadata Inspection
+
 ```java
 DatabaseMetaData dbmd = connection.getMetaData();
 
@@ -191,29 +201,34 @@ while (tables.next()) {
 }
 ```
 
-## 🏆 Performance Features
+## Performance Features
 
 ### Batch Operations Performance
+
 Our `JdbcBatchProcessingTest` demonstrates:
+
 - **Individual Inserts**: ~100ms for 1000 records
 - **Batch Inserts**: ~10ms for 1000 records (**10x faster**)
 - **Mixed Batches**: Different operation types in single batch
 - **Error Handling**: Continuing after batch failures
 
 ### Connection Pooling Benefits
+
 - **Pool Size**: 10 connections
 - **Connection Reuse**: Eliminates connection overhead
 - **Resource Management**: Automatic cleanup
 - **Performance**: Sub-millisecond connection acquisition
 
-## 🔒 Security Features
+## Security Features
 
 ### SQL Injection Prevention
+
 - ✅ **PreparedStatement**: All user input properly parameterized
 - ✅ **Input Validation**: Email format validation
 - ✅ **Error Handling**: No sensitive information in error messages
 
 ### Configuration Security
+
 - ✅ **Environment Variables**: Sensitive data in environment
 - ✅ **Git Ignore**: Database credentials excluded from version control
 - ✅ **Connection Pooling**: Secure connection management
@@ -221,12 +236,14 @@ Our `JdbcBatchProcessingTest` demonstrates:
 ## 🧪 Running the Tests
 
 ### Prerequisites
+
 ```bash
 # Install MySQL and create databases
 ./setup-dev-env.sh
 ```
 
 ### Individual Feature Tests
+
 ```bash
 # Test basic JDBC operations
 mvn test -Dtest=DataTest
@@ -245,11 +262,12 @@ mvn test -Dtest=CustomerServiceAdvancedTest
 ```
 
 ### All Tests
+
 ```bash
 mvn test
 ```
 
-## 📊 Test Coverage Summary
+## Test Coverage Summary
 
 | Test Class | JDBC Features Covered | Test Methods |
 |------------|----------------------|--------------|
@@ -261,7 +279,7 @@ mvn test
 
 **Total: 37 test methods covering all major JDBC features**
 
-## 🎓 Educational Value
+## Educational Value
 
 This project serves as a complete JDBC tutorial demonstrating:
 
@@ -273,9 +291,10 @@ This project serves as a complete JDBC tutorial demonstrating:
 6. **Best Practices**: Resource management and error handling
 7. **Modern Patterns**: Optional types and service layer design
 
-## 📝 Next Steps
+## Next Steps
 
 To extend this further, consider adding:
+
 - [ ] **JDBC 4.0+ Features**: Auto-generated keys, enhanced type support
 - [ ] **Blob/Clob Handling**: Large object processing
 - [ ] **Streaming ResultSets**: Memory-efficient large result processing
@@ -285,4 +304,4 @@ To extend this further, consider adding:
 
 ---
 
-**🎉 Congratulations! You now have a comprehensive demonstration of ALL major JDBC features with practical, production-ready examples.**
+**Congratulations! You now have a comprehensive demonstration of ALL major JDBC features with practical, production-ready examples.**
