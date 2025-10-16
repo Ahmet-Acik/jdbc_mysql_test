@@ -287,4 +287,22 @@ class CustomerServiceTest {
         () -> customerService.createCustomer(validCustomer));
     assertEquals("Customer phone number must be numeric", exception.getMessage());
     }
+
+    @Test
+    @DisplayName("Should throw exception when updating customer with null phone number")
+    void updateCustomer_NullPhone_ThrowsException() {
+    validCustomer.setCustomerId(3);
+    validCustomer.setPhoneNumber(null);
+    IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+            () -> customerService.updateCustomer(validCustomer));
+    assertEquals("Customer phone number is required", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should throw exception when deleting customer with zero ID")
+    void deleteCustomer_ZeroId_ThrowsException() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> customerService.deleteCustomer(0));
+        assertEquals("Customer ID must be positive", exception.getMessage());
+    }
 }
