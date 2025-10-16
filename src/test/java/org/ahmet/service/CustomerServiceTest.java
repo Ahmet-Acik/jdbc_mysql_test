@@ -244,5 +244,7 @@ class CustomerServiceTest {
     when(customerDao.updateCustomer(validCustomer)).thenReturn(true);
     boolean result = customerService.updateCustomer(validCustomer);
     assertTrue(result);
-}
+    verify(customerDao).updateCustomer(validCustomer);
+    }
+
 }
