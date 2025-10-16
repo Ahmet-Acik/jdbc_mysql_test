@@ -264,6 +264,18 @@ class CustomerServiceTest {
     List<Customer> result = customerService.getAllCustomers();
     assertNotNull(result);
     assertTrue(result.isEmpty());
-}
-
+    }
+    
+    @Test
+    @DisplayName("Should trim leading/trailing spaces in fields")
+    void createCustomer_TrimmedFields_Success() throws SQLException {
+        Customer trimmedCustomer = new Customer("  John Doe  ", "  john.doe@example.com  ", " 1234567890 ");
+        when(customerDao.findByEmail("  john.doe@example.com  ")).thenReturn(Optional.empty());
+        when(customerDao.createCustomer(trimmedCustomer)).thenReturn(3);
+        Customer result = customerService.createCustomer(trimmedCustomer);
+        assertNotNull(result);
+        assertEquals("John Doe", result.getName().trim());
+        assertEquals("john.doe@example.com", result.getEmail().trim());
+        assertEquals("1234567890", result.getPhoneNumber().trim());
+    }
 }
