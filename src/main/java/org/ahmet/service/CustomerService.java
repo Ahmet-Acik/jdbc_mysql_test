@@ -161,6 +161,9 @@ public class CustomerService {
         if (customer.getPhoneNumber() == null || customer.getPhoneNumber().trim().isEmpty()) {
             throw new IllegalArgumentException("Customer phone number is required");
         }
+        if (!customer.getPhoneNumber().matches("\\d+")) {
+            throw new IllegalArgumentException("Customer phone number must be numeric");
+        }
     }
 
     /**
