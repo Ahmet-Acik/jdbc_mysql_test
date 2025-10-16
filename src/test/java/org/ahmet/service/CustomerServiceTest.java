@@ -266,10 +266,10 @@ class CustomerServiceTest {
     assertTrue(result.isEmpty());
     }
     
-    @Test
+      @Test
     @DisplayName("Should trim leading/trailing spaces in fields")
     void createCustomer_TrimmedFields_Success() throws SQLException {
-        Customer trimmedCustomer = new Customer("  John Doe  ", "  john.doe@example.com  ", " 1234567890 ");
+        Customer trimmedCustomer = new Customer("  John Doe  ", "  john.doe@example.com  ", "1234567890");
         when(customerDao.findByEmail("  john.doe@example.com  ")).thenReturn(Optional.empty());
         when(customerDao.createCustomer(trimmedCustomer)).thenReturn(3);
         Customer result = customerService.createCustomer(trimmedCustomer);
@@ -277,5 +277,14 @@ class CustomerServiceTest {
         assertEquals("John Doe", result.getName().trim());
         assertEquals("john.doe@example.com", result.getEmail().trim());
         assertEquals("1234567890", result.getPhoneNumber().trim());
+    }
+
+    @Test
+    @DisplayName("Should throw exception for non-numeric phone number")
+    void createCustomer_NonNumericPhone_ThrowsException() {
+    validCustomer.setPhoneNumber("123-abc-!@#");
+    IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+        () -> customerService.createCustomer(validCustomer));
+    assertEquals("Customer phone number must be numeric", exception.getMessage());
     }
 }
