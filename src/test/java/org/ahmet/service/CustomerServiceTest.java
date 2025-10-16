@@ -247,4 +247,14 @@ class CustomerServiceTest {
     verify(customerDao).updateCustomer(validCustomer);
     }
 
+    @Test
+    @DisplayName("Should delete customer with very large ID value")
+    void deleteCustomer_LargeId_Success() throws SQLException {
+    int largeId = Integer.MAX_VALUE;
+    when(customerDao.deleteCustomer(largeId)).thenReturn(true);
+    boolean result = customerService.deleteCustomer(largeId);
+    assertTrue(result);
+    verify(customerDao).deleteCustomer(largeId);
+}
+
 }
