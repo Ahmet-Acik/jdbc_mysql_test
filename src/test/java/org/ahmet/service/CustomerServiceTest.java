@@ -231,7 +231,8 @@ class CustomerServiceTest {
     Customer result = customerService.createCustomer(specialCharCustomer);
     assertNotNull(result);
     assertEquals("Jöhn Dœ!@#", result.getName());
-    
+    verify(customerDao).findByEmail(specialCharCustomer.getEmail());
+    verify(customerDao).createCustomer(specialCharCustomer);
     }
 
     
