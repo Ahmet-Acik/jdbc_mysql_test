@@ -235,5 +235,14 @@ class CustomerServiceTest {
     verify(customerDao).createCustomer(specialCharCustomer);
     }
 
-    
+    @Test
+    @DisplayName("Should update customer with very long email address")
+    void updateCustomer_LongEmail_Success() throws SQLException {
+    String longEmail = "a".repeat(100) + "@example.com";
+    validCustomer.setCustomerId(2);
+    validCustomer.setEmail(longEmail);
+    when(customerDao.updateCustomer(validCustomer)).thenReturn(true);
+    boolean result = customerService.updateCustomer(validCustomer);
+    assertTrue(result);
+}
 }
