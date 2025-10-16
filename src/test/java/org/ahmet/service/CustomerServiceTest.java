@@ -255,6 +255,15 @@ class CustomerServiceTest {
     boolean result = customerService.deleteCustomer(largeId);
     assertTrue(result);
     verify(customerDao).deleteCustomer(largeId);
+    }
+
+    @Test
+    @DisplayName("Should return empty list when no customers exist")
+    void getAllCustomers_EmptyList_ReturnsEmpty() throws SQLException {
+    when(customerDao.findAll()).thenReturn(List.of());
+    List<Customer> result = customerService.getAllCustomers();
+    assertNotNull(result);
+    assertTrue(result.isEmpty());
 }
 
 }
