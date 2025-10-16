@@ -221,4 +221,18 @@ class CustomerServiceTest {
         assertEquals("Failed to create customer", exception.getMessage());
         assertTrue(exception.getCause() instanceof SQLException);
     }
+
+    @Test
+    @DisplayName("Should create customer with special characters in name")
+    void createCustomer_SpecialCharName_Success() throws SQLException {
+    Customer specialCharCustomer = new Customer("Jöhn Dœ!@#", "special@example.com", "1234567890");
+    when(customerDao.findByEmail(specialCharCustomer.getEmail())).thenReturn(Optional.empty());
+    when(customerDao.createCustomer(specialCharCustomer)).thenReturn(2);
+    Customer result = customerService.createCustomer(specialCharCustomer);
+    assertNotNull(result);
+    assertEquals("Jöhn Dœ!@#", result.getName());
+    
+    }
+
+    
 }
